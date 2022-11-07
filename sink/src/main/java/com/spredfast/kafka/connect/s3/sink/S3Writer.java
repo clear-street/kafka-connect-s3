@@ -60,8 +60,9 @@ public class S3Writer {
 
 	public long putChunk(String localDataFile, String localIndexFile, TopicPartition tp) throws IOException {
 		// Put data file then index, then finally update/create the last_index_file marker
-		String dataFileKey = this.getChunkFileKey(localDataFile);
-		String idxFileKey = this.getChunkFileKey(localIndexFile);
+		System.out.println("BP1");
+		String dataFileKey = this.getChunkFileKey(localDataFile, tp);
+		String idxFileKey = this.getChunkFileKey(localIndexFile, tp);
 		// Read offset first since we'll delete the file after upload
 		long nextOffset = getNextOffsetFromIndexFileContents(new FileReader(localIndexFile));
 
@@ -126,13 +127,9 @@ public class S3Writer {
 		return lastChunk.first_record_offset + lastChunk.num_records;
 	}
 
-	// We store chunk files with a date prefix just to make finding them and navigating around the bucket a bit easier
-	// date is meaningless other than "when this was uploaded"
-	private String getChunkFileKey(String localFilePath) {
+	private String getChunkFileKey(String localFilePath, TopicPartition tp) {
 		Path p = Paths.get(localFilePath);
-		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-		df.setTimeZone(UTC);
-		return String.format("%s%s/%s", keyPrefix, df.format(new Date()), p.getFileName().toString());
+		return String.format("%s%s/%s/%s", keyPrefix, tp.topic(), tp.partition(),p.getFileName().toString());
 	}
 
 	private String getTopicPartitionLastIndexFileKey(TopicPartition tp) {

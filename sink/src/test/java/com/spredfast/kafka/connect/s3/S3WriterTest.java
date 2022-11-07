@@ -126,32 +126,6 @@ public class S3WriterTest {
 		return String.format("%s/%s/%s", prefix, df.format(new Date()), name);
 	}
 
-	@Test
-	public void testUpload() throws Exception {
-		AmazonS3 s3Mock = mock(AmazonS3.class);
-		TransferManager tmMock = mock(TransferManager.class);
-		BlockGZIPFileWriter fileWriter = createDummmyFiles(0, 1000);
-		S3Writer s3Writer = new S3Writer(testBucket, "pfx", s3Mock, tmMock);
-		TopicPartition tp = new TopicPartition("bar", 0);
-
-		Upload mockUpload = mock(Upload.class);
-
-		when(tmMock.upload(eq(testBucket), eq(getKeyForFilename("pfx", "bar-00000-000000000000.gz")), isA(File.class)))
-			.thenReturn(mockUpload);
-		when(tmMock.upload(eq(testBucket), eq(getKeyForFilename("pfx", "bar-00000-000000000000.index.json")), isA(File.class)))
-			.thenReturn(mockUpload);
-
-		s3Writer.putChunk(fileWriter.getDataFilePath(), fileWriter.getIndexFilePath(), tp);
-
-		verifyTMUpload(tmMock, new ExpectedRequestParams[]{
-			new ExpectedRequestParams(getKeyForFilename("pfx", "bar-00000-000000000000.gz"), testBucket),
-			new ExpectedRequestParams(getKeyForFilename("pfx", "bar-00000-000000000000.index.json"), testBucket)
-		});
-
-		// Verify it also wrote the index file key
-		verifyStringPut(s3Mock, "pfx/last_chunk_index.bar-00000.txt",
-			getKeyForFilename("pfx", "bar-00000-000000000000.index.json"));
-	}
 
 	private S3Object makeMockS3Object(String key, String contents) throws Exception {
 		S3Object mock = new S3Object();
