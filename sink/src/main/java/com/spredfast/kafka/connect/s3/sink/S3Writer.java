@@ -60,7 +60,7 @@ public class S3Writer {
 
 	public long putChunk(String localDataFile, String localIndexFile, TopicPartition tp) throws IOException {
 		// Put data file then index, then finally update/create the last_index_file marker
-		System.out.println("BP1");
+
 		String dataFileKey = this.getChunkFileKey(localDataFile, tp);
 		String idxFileKey = this.getChunkFileKey(localIndexFile, tp);
 		// Read offset first since we'll delete the file after upload
@@ -129,7 +129,7 @@ public class S3Writer {
 
 	private String getChunkFileKey(String localFilePath, TopicPartition tp) {
 		Path p = Paths.get(localFilePath);
-		return String.format("%s%s/%s/%s", keyPrefix, tp.topic(), tp.partition(),p.getFileName().toString());
+		return String.format("%s%s/partition=%s/%s", keyPrefix, tp.topic(), tp.partition(),p.getFileName().toString());
 	}
 
 	private String getTopicPartitionLastIndexFileKey(TopicPartition tp) {
